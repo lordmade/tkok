@@ -39,6 +39,12 @@
       font-size: 1rem;
       color: #4b5563;
     }
+    .error-global {
+      color: #ef4444;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
     .btn {
       width: 100%;
       padding: 0.75rem;
@@ -150,6 +156,7 @@
 <body>
   <div class="card">
     <h1>Auth App</h1>
+    <div id="error-global" class="error-global"></div>
     <div id="auth-status" class="auth-status">Not signed in</div>
     <button class="btn" onclick="showAuthModal()">Sign In / Sign Up</button>
   </div>
@@ -180,48 +187,58 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
   <script>
     console.log('Script loaded');
-    // Firebase configuration (replace with your own from Firebase Console)
+    // Firebase configuration
    const firebaseConfig = {
-  apiKey: "AIzaSyBKiLSA6YmVksZsoZmLUUyBZEyGzBKW1Xw",
-  authDomain: "sample-firebase-ai-app-46d10.firebaseapp.com",
-  projectId: "sample-firebase-ai-app-46d10",
-  storageBucket: "sample-firebase-ai-app-46d10.firebasestorage.app",
-  messagingSenderId: "144964562783",
-  appId: "1:144964562783:web:65775f19ec3029eed5d0ea"
+  apiKey: "AIzaSyAxBT0oESoL62oz_x_Z8cMtdENWZPx4tMI",
+  authDomain: "pinotp-d7ef5.firebaseapp.com",
+  databaseURL: "https://pinotp-d7ef5-default-rtdb.firebaseio.com",
+  projectId: "pinotp-d7ef5",
+  storageBucket: "pinotp-d7ef5.firebasestorage.app",
+  messagingSenderId: "708458917827",
+  appId: "1:708458917827:web:b9536e469a842d56cf9776"
 };
 
     // Initialize Firebase
+    let auth;
     try {
       firebase.initializeApp(firebaseConfig);
+      auth = firebase.auth();
       console.log('Firebase initialized successfully');
     } catch (error) {
-      console.error('Firebase initialization error:', error);
-      showError('modal-error', 'Failed to initialize app. Check console.');
+      console.error('Firebase initialization error:', error.code, error.message);
+      showGlobalError(`Failed to initialize app: ${error.message}. Please check Firebase configuration.`);
     }
-    const auth = firebase.auth();
 
     let isSignUp = true;
 
     // Check auth state
-    auth.onAuthStateChanged(user => {
-      console.log('Auth state changed:', user ? user.email : 'No user');
-      const authStatus = document.getElementById('auth-status');
-      if (user) {
-        authStatus.innerHTML = `Signed in as ${user.email} | <a href="#" onclick="signOut()">Sign Out</a>`;
-      } else {
-        authStatus.textContent = 'Not signed in';
-      }
-    });
+    if (auth) {
+      auth.onAuthStateChanged(user => {
+        console.log('Auth state changed:', user ? user.email : 'No user');
+        const authStatus = document.getElementById('auth-status');
+        if (user) {
+          authStatus.innerHTML = `Signed in as ${user.email} | <a href="#" onclick="signOut()">Sign Out</a>`;
+        } else {
+          authStatus.textContent = 'Not signed in';
+        }
+      });
+    } else {
+      console.warn('Auth not initialized; skipping auth state listener');
+    }
 
     // Show modal
     function showAuthModal() {
       console.log('Showing auth modal');
+      if (!auth) {
+        showGlobalError('Authentication service not available. Please check Firebase setup.');
+        return;
+      }
       const modal = document.getElementById('auth-modal');
       if (modal) {
         modal.style.display = 'flex';
       } else {
         console.error('Modal element not found');
-        showError('modal-error', 'Modal not found.');
+        showGlobalError('Modal not found. Check HTML structure.');
       }
     }
 
@@ -261,10 +278,15 @@
 
     // Handle authentication
     function handleAuth() {
+      if (!auth) {
+        showModalError('Authentication service not available.');
+        console.error('Auth not initialized');
+        return;
+      }
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
       if (!email || !password) {
-        showError('modal-error', 'Please enter both email and password');
+        showModalError('Please enter both email and password');
         console.log('Auth error: Missing email or password');
         return;
       }
@@ -281,8 +303,8 @@
             });
           })
           .catch(error => {
-            showError('modal-error', error.message);
-            console.error('Sign up error:', error.message);
+            showModalError(error.message);
+            console.error('Sign up error:', error.code, error.message);
           });
       } else {
         console.log('Attempting to sign in with:', email);
@@ -292,23 +314,37 @@
             closeModal();
           })
           .catch(error => {
-            showError('modal-error', error.message);
-            console.error('Sign in error:', error.message);
+            showModalError(error.message);
+            console.error('Sign in error:', error.code, error.message);
           });
       }
     }
 
     // Sign out
     function signOut() {
+      if (!auth) {
+        console.error('Auth not initialized');
+        return;
+      }
       console.log('Signing out');
       auth.signOut().catch(error => {
         console.error('Sign out error:', error);
+        showGlobalError('Failed to sign out: ' + error.message);
       });
     }
 
-    // Show error message
-    function showError(elementId, message) {
-      const errorElement = document.getElementById(elementId);
+    // Show modal error
+    function showModalError(message) {
+      const errorElement = document.getElementById('modal-error');
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+      }
+    }
+
+    // Show global error
+    function showGlobalError(message) {
+      const errorElement = document.getElementById('error-global');
       if (errorElement) {
         errorElement.textContent = message;
         errorElement.style.display = 'block';
