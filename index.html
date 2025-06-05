@@ -3,121 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ImageTok - URL-based Image Sharing</title>
+  <title>Auth App</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #6b7280, #111827);
+      color: #1f2937;
     }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
+    .card {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
     }
     h1 {
-      text-align: center;
-      color: #333;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #111827;
     }
-    .form-container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-    .form-container input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
+    .auth-status {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #4b5563;
     }
     .btn {
       width: 100%;
-      padding: 10px;
+      padding: 0.75rem;
       background-color: #000;
       color: white;
       border: none;
       border-radius: 999px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background-color 0.2s ease;
+      margin-top: 1rem;
     }
     .btn:hover {
-      background-color: #333;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
-      display: none;
-    }
-    .post {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-      padding: 15px;
-    }
-    .post-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .avatar {
-      width: 40px;
-      height: 40px;
-      background-color: #ccc;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 10px;
-      font-weight: bold;
-    }
-    .post img {
-      width: 100%;
-      height: 400px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    .post-actions {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-      gap: 10px;
-    }
-    .like-button {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #e74c3c;
-    }
-    .like-button svg {
-      width: 24px;
-      height: 24px;
-      margin-right: 5px;
-    }
-    .like-button:hover {
-      color: #c0392b;
-    }
-    .delete-button {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #000;
-      background-color: #fff;
-      border: 1px solid #000;
-      padding: 5px 10px;
-      border-radius: 999px;
-    }
-    .delete-button:hover {
-      background-color: #f0f0f0;
-    }
-    .delete-button svg {
-      width: 20px;
-      height: 20px;
-      margin-right: 5px;
+      background-color: #1f2937;
     }
     .modal {
       display: none;
@@ -126,49 +62,96 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.6);
       justify-content: center;
       align-items: center;
       z-index: 1000;
     }
     .modal-content {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
       width: 90%;
-      max-width: 400px;
+      max-width: 360px;
       position: relative;
+      animation: fadeIn 0.3s ease;
     }
-    .modal-content h2 {
-      margin-top: 0;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
     }
     .close-btn {
       position: absolute;
       top: 10px;
-      right: 10px;
-      font-size: 20px;
+      right: 15px;
+      font-size: 1.5rem;
       cursor: pointer;
+      color: #4b5563;
+    }
+    .close-btn:hover {
+      color: #111827;
+    }
+    .modal-content h2 {
+      font-size: 1.5rem;
+      margin: 0 0 1rem;
+      color: #111827;
+    }
+    .input-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+      color: #4b5563;
+    }
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+      box-sizing: border-box;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .error {
+      color: #ef4444;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      display: none;
     }
     .toggle-link {
-      color: #007bff;
+      color: #3b82f6;
       text-decoration: none;
+      font-weight: 500;
     }
     .toggle-link:hover {
       text-decoration: underline;
     }
+    @media (max-width: 480px) {
+      .card {
+        padding: 1.5rem;
+        max-width: 90%;
+      }
+      .modal-content {
+        padding: 1rem;
+        max-width: 85%;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>ImageTok</h1>
-    <div class="form-container">
-      <div id="error" class="error"></div>
-      <div id="auth-status"></div>
-      <input type="text" id="username" placeholder="Your username" disabled>
-      <input type="url" id="imageUrl" placeholder="Image URL" disabled>
-      <button class="btn" onclick="checkAuthAndShowModal()">Post Image</button>
-    </div>
-    <div id="feed"></div>
+  <div class="card">
+    <h1>Auth App</h1>
+    <div id="auth-status" class="auth-status">Not signed in</div>
+    <button class="btn" onclick="showAuthModal()">Sign In / Sign Up</button>
   </div>
 
   <!-- Modal for Sign Up/Sign In -->
@@ -177,10 +160,16 @@
       <span class="close-btn" onclick="closeModal()">×</span>
       <h2 id="modal-title">Sign Up</h2>
       <div id="modal-error" class="error"></div>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Enter your email">
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password">
+      </div>
       <button class="btn" id="auth-btn" onclick="handleAuth()">Sign Up</button>
-      <p style="text-align: center; margin-top: 10px;">
+      <p style="text-align: center; margin-top: 1rem; font-size: 0.9rem;">
         <span id="toggle-text">Already have an account?</span>
         <a href="#" class="toggle-link" onclick="toggleAuthMode()" id="toggle-link">Sign In</a>
       </p>
@@ -189,62 +178,60 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
   <script>
-    // Firebase configuration
+    console.log('Script loaded');
+    // Firebase configuration (replace with your own from Firebase Console)
     const firebaseConfig = {
-      apiKey: "AIzaSyBKiLSA6YmVksZsoZmLUUyBZEyGzBKW1Xw",
-      authDomain: "sample-firebase-ai-app-46d10.firebaseapp.com",
-      databaseURL: "https://sample-firebase-ai-app-46d10.firebaseio.com",
-      projectId: "sample-firebase-ai-app-46d10",
-      storageBucket: "sample-firebase-ai-app-46d10.firebasestorage.app",
-      messagingSenderId: "144964562403",
-      appId: "1:144964562403:web:65775f19ec3029eed5d0ea"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
     };
 
     // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
+    try {
+      firebase.initializeApp(firebaseConfig);
+      console.log('Firebase initialized successfully');
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+      showError('modal-error', 'Failed to initialize app. Check console.');
+    }
     const auth = firebase.auth();
-    const database = firebase.database();
 
     let isSignUp = true;
 
-    // Check auth state and update UI
+    // Check auth state
     auth.onAuthStateChanged(user => {
+      console.log('Auth state changed:', user ? user.email : 'No user');
       const authStatus = document.getElementById('auth-status');
-      const usernameInput = document.getElementById('username');
-      const imageUrlInput = document.getElementById('imageUrl');
       if (user) {
         authStatus.innerHTML = `Signed in as ${user.email} | <a href="#" onclick="signOut()">Sign Out</a>`;
-        usernameInput.disabled = false;
-        imageUrlInput.disabled = false;
-        usernameInput.value = user.displayName || user.email.split('@')[0];
       } else {
-        authStatus.innerHTML = 'Not signed in';
-        usernameInput.disabled = true;
-        imageUrlInput.disabled = true;
-        usernameInput.value = '';
-        imageUrlInput.value = '';
+        authStatus.textContent = 'Not signed in';
       }
-      // Re-render posts to update delete button visibility
-      database.ref('posts').once('value').then(snapshot => {
-        const posts = snapshot.val() || {};
-        renderPosts(posts);
-      });
     });
 
-    // Show modal for sign up/sign in
-    function checkAuthAndShowModal() {
-      if (!auth.currentUser) {
-        document.getElementById('auth-modal').style.display = 'flex';
+    // Show modal
+    function showAuthModal() {
+      console.log('Showing auth modal');
+      const modal = document.getElementById('auth-modal');
+      if (modal) {
+        modal.style.display = 'flex';
       } else {
-        submitPost();
+        console.error('Modal element not found');
+        showError('modal-error', 'Modal not found.');
       }
     }
 
     // Close modal
     function closeModal() {
-      document.getElementById('auth-modal').style.display = 'none';
+      console.log('Closing auth modal');
+      const modal = document.getElementById('auth-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
       document.getElementById('modal-error').style.display = 'none';
       document.getElementById('email').value = '';
       document.getElementById('password').value = '';
@@ -262,11 +249,13 @@
         authBtn.textContent = 'Sign Up';
         toggleText.textContent = 'Already have an account?';
         toggleLink.textContent = 'Sign In';
+        console.log('Switched to Sign Up mode');
       } else {
         modalTitle.textContent = 'Sign In';
         authBtn.textContent = 'Sign In';
         toggleText.textContent = 'No account?';
         toggleLink.textContent = 'Sign Up';
+        console.log('Switched to Sign In mode');
       }
     }
 
@@ -274,558 +263,56 @@
     function handleAuth() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
-      const modalError = document.getElementById('modal-error');
-
       if (!email || !password) {
-        modalError.style.display = 'block';
-        modalError.textContent = 'Please enter both email and password';
+        showError('modal-error', 'Please enter both email and password');
+        console.log('Auth error: Missing email or password');
         return;
       }
-
       if (isSignUp) {
+        console.log('Attempting to sign up with:', email);
         auth.createUserWithEmailAndPassword(email, password)
           .then(userCredential => {
+            console.log('Sign up successful for:', email);
             userCredential.user.updateProfile({
               displayName: email.split('@')[0]
             }).then(() => {
+              console.log('Profile updated with displayName:', email.split('@')[0]);
               closeModal();
             });
           })
           .catch(error => {
-            modalError.style.display = 'block';
-            modalError.textContent = error.message;
+            showError('modal-error', error.message);
+            console.error('Sign up error:', error.message);
           });
       } else {
+        console.log('Attempting to sign in with:', email);
         auth.signInWithEmailAndPassword(email, password)
           .then(() => {
+            console.log('Sign in successful for:', email);
             closeModal();
           })
           .catch(error => {
-            modalError.style.display = 'block';
-            modalError.textContent = error.message;
+            showError('modal-error', error.message);
+            console.error('Sign in error:', error.message);
           });
       }
     }
 
     // Sign out
     function signOut() {
-      auth.signOut();
-    }
-
-    // Render posts to the feed
-    function renderPosts(posts) {
-      const feed = document.getElementById('feed');
-      feed.innerHTML = '';
-      const currentUser = auth.currentUser;
-      Object.entries(posts).forEach(([id, post]) => {
-        const postElement = document.createElement('div');
-        postElement.className = 'post';
-        const deleteButton = currentUser && post.userId === currentUser.uid
-          ? `<div class="delete-button" onclick="deletePost('${id}')">
-               <svg fill="currentColor" viewBox="0 0 20 20">
-                 <path d="M6 2h8a2 2 0 012 2v1h-1.5l-.5 9a2 2 0 01-2 2H8a2 2 0 01-2-2l-.5-9H4V4a2 2 0 012-2zm1.5 3l.5 9h4l.5-9h-5z"/>
-               </svg>
-               Delete
-             </div>`
-          : '';
-        postElement.innerHTML = `
-          <div class="post-header">
-            <div class="avatar">${post.username[0].toUpperCase()}</div>
-            <span>${post.username}</span>
-          </div>
-          <img src="${post.imageUrl}" alt="Post" onerror="this.src='https://via.placeholder.com/400x600?text=Image+Not+Found';">
-          <div class="post-actions">
-            <div class="like-button" onclick="likePost('${id}')">
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-              </svg>
-              <span>${post.likes || 0}</span>
-            </div>
-            ${deleteButton}
-          </div>
-        `;
-        feed.appendChild(postElement);
+      console.log('Signing out');
+      auth.signOut().catch(error => {
+        console.error('Sign out error:', error);
       });
     }
 
-    // Listen for real-time updates from Firebase
-    database.ref('posts').on('value', (snapshot) => {
-      const posts = snapshot.val() || {};
-      renderPosts(posts);
-    });
-
-    // Submit a new post
-    function submitPost() {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const username = document.getElementById('username').value.trim() || user.displayName || user.email.split('@')[0];
-      const imageUrl = document.getElementById('imageUrl').value.trim();
-      const error = document.getElementById('error');
-
-      if (!imageUrl) {
-        error.style.display = 'block';
-        error.textContent = 'Please enter an image URL';
-        return;
+    // Show error message
+    function showError(elementId, message) {
+      const errorElement = document.getElementById(elementId);
+      if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
       }
-
-      try {
-        new URL(imageUrl);
-      } catch {
-        error.style.display = 'block';
-        error.textContent = 'Please enter a valid image URL';
-        return;
-      }
-
-      const newPost = {
-        username,
-        imageUrl,
-        likes: 0,
-        timestamp: Date.now(),
-        userId: user.uid
-      };
-
-      database.ref('posts').push(newPost).then(() => {
-        document.getElementById('imageUrl').value = '';
-        error.style.display = 'none';
-      }).catch(err => {
-        error.style.display = 'block';
-        error.textContent = 'Error posting image: ' + err.message;
-      });
-    }
-
-    // Like a post
-    function likePost(postId) {
-      const postRef = database.ref(`posts/${postId
-System: It looks like the code was cut off at the end. I'll complete the implementation, ensuring it includes the full functionality for the `likePost` function and any other necessary parts, while incorporating your Firebase configuration and the requested features: user registration (sign-up) and login (sign-in) via a modal, black pill-shaped buttons, public post visibility, and the ability for users to delete their own posts. The code will use HTML, JavaScript, and CSS with Firebase Realtime Database and Authentication.
-
-Below is the complete, corrected version of the code.
-
-<xaiArtifact artifact_id="7563e381-634b-4a39-94f5-347467904467" artifact_version_id="c9c57ae8-4b51-4cc5-9d11-97a0d3337462" title="index.html" contentType="text/html">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ImageTok - URL-based Image Sharing</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f0f0f0;
-      margin: 0;
-      padding: 20px;
-    }
-    .container {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    .form-container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-    }
-    .form-container input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    .btn {
-      width: 100%;
-      padding: 10px;
-      background-color: #000;
-      color: white;
-      border: none;
-      border-radius: 999px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    .btn:hover {
-      background-color: #333;
-    }
-    .error {
-      color: red;
-      margin-bottom: 10px;
-      display: none;
-    }
-    .post {
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
-      padding: 15px;
-    }
-    .post-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-    .avatar {
-      width: 40px;
-      height: 40px;
-      background-color: #ccc;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 10px;
-      font-weight: bold;
-    }
-    .post img {
-      width: 100%;
-      height: 400px;
-      object-fit: cover;
-      border-radius: 4px;
-    }
-    .post-actions {
-      display: flex;
-      align-items: center;
-      margin-top: 10px;
-      gap: 10px;
-    }
-    .like-button {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #e74c3c;
-    }
-    .like-button svg {
-      width: 24px;
-      height: 24px;
-      margin-right: 5px;
-    }
-    .like-button:hover {
-      color: #c0392b;
-    }
-    .delete-button {
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      color: #000;
-      background-color: #fff;
-      border: 1px solid #000;
-      padding: 5px 10px;
-      border-radius: 999px;
-    }
-    .delete-button:hover {
-      background-color: #f0f0f0;
-    }
-    .delete-button svg {
-      width: 20px;
-      height: 20px;
-      margin-right: 5px;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-    .modal-content {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 400px;
-      position: relative;
-    }
-    .modal-content h2 {
-      margin-top: 0;
-    }
-    .close-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    .toggle-link {
-      color: #007bff;
-      text-decoration: none;
-    }
-    .toggle-link:hover {
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>ImageTok</h1>
-    <div class="form-container">
-      <div id="error" class="error"></div>
-      <div id="auth-status"></div>
-      <input type="text" id="username" placeholder="Your username" disabled>
-      <input type="url" id="imageUrl" placeholder="Image URL" disabled>
-      <button class="btn" onclick="checkAuthAndShowModal()">Post Image</button>
-    </div>
-    <div id="feed"></div>
-  </div>
-
-  <!-- Modal for Sign Up/Sign In -->
-  <div id="auth-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closeModal()">×</span>
-      <h2 id="modal-title">Sign Up</h2>
-      <div id="modal-error" class="error"></div>
-      <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
-      <button class="btn" id="auth-btn" onclick="handleAuth()">Sign Up</button>
-      <p style="text-align: center; margin-top: 10px;">
-        <span id="toggle-text">Already have an account?</span>
-        <a href="#" class="toggle-link" onclick="toggleAuthMode()" id="toggle-link">Sign In</a>
-      </p>
-    </div>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"></script>
-  <script>
-    // Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKiLSA6YmVksZsoZmLUUyBZEyGzBKW1Xw",
-      authDomain: "sample-firebase-ai-app-46d10.firebaseapp.com",
-      databaseURL: "https://sample-firebase-ai-app-46d10.firebaseio.com",
-      projectId: "sample-firebase-ai-app-46d10",
-      storageBucket: "sample-firebase-ai-app-46d10.firebasestorage.app",
-      messagingSenderId: "144964562403",
-      appId: "1:144964562403:web:65775f19ec3029eed5d0ea"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
-
-    let isSignUp = true;
-
-    // Check auth state and update UI
-    auth.onAuthStateChanged(user => {
-      const authStatus = document.getElementById('auth-status');
-      const usernameInput = document.getElementById('username');
-      const imageUrlInput = document.getElementById('imageUrl');
-      if (user) {
-        authStatus.innerHTML = `Signed in as ${user.email} | <a href="#" onclick="signOut()">Sign Out</a>`;
-        usernameInput.disabled = false;
-        imageUrlInput.disabled = false;
-        usernameInput.value = user.displayName || user.email.split('@')[0];
-      } else {
-        authStatus.innerHTML = 'Not signed in';
-        usernameInput.disabled = true;
-        imageUrlInput.disabled = true;
-        usernameInput.value = '';
-        imageUrlInput.value = '';
-      }
-      // Re-render posts to update delete button visibility
-      database.ref('posts').once('value').then(snapshot => {
-        const posts = snapshot.val() || {};
-        renderPosts(posts);
-      });
-    });
-
-    // Show modal for sign up/sign in
-    function checkAuthAndShowModal() {
-      if (!auth.currentUser) {
-        document.getElementById('auth-modal').style.display = 'flex';
-      } else {
-        submitPost();
-      }
-    }
-
-    // Close modal
-    function closeModal() {
-      document.getElementById('auth-modal').style.display = 'none';
-      document.getElementById('modal-error').style.display = 'none';
-      document.getElementById('email').value = '';
-      document.getElementById('password').value = '';
-    }
-
-    // Toggle between sign up and sign in
-    function toggleAuthMode() {
-      isSignUp = !isSignUp;
-      const modalTitle = document.getElementById('modal-title');
-      const authBtn = document.getElementById('auth-btn');
-      const toggleText = document.getElementById('toggle-text');
-      const toggleLink = document.getElementById('toggle-link');
-      if (isSignUp) {
-        modalTitle.textContent = 'Sign Up';
-        authBtn.textContent = 'Sign Up';
-        toggleText.textContent = 'Already have an account?';
-        toggleLink.textContent = 'Sign In';
-      } else {
-        modalTitle.textContent = 'Sign In';
-        authBtn.textContent = 'Sign In';
-        toggleText.textContent = 'No account?';
-        toggleLink.textContent = 'Sign Up';
-      }
-    }
-
-    // Handle authentication
-    function handleAuth() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const modalError = document.getElementById('modal-error');
-
-      if (!email || !password) {
-        modalError.style.display = 'block';
-        modalError.textContent = 'Please enter both email and password';
-        return;
-      }
-
-      if (isSignUp) {
-        auth.createUserWithEmailAndPassword(email, password)
-          .then(userCredential => {
-            userCredential.user.updateProfile({
-              displayName: email.split('@')[0]
-            }).then(() => {
-              closeModal();
-            });
-          })
-          .catch(error => {
-            modalError.style.display = 'block';
-            modalError.textContent = error.message;
-          });
-      } else {
-        auth.signInWithEmailAndPassword(email, password)
-          .then(() => {
-            closeModal();
-          })
-          .catch(error => {
-            modalError.style.display = 'block';
-            modalError.textContent = error.message;
-          });
-      }
-    }
-
-    // Sign out
-    function signOut() {
-      auth.signOut();
-    }
-
-    // Render posts to the feed
-    function renderPosts(posts) {
-      const feed = document.getElementById('feed');
-      feed.innerHTML = '';
-      const currentUser = auth.currentUser;
-      Object.entries(posts).sort((a, b) => b[1].timestamp - a[1].timestamp).forEach(([id, post]) => {
-        const postElement = document.createElement('div');
-        postElement.className = 'post';
-        const deleteButton = currentUser && post.userId === currentUser.uid
-          ? `<div class="delete-button" onclick="deletePost('${id}')">
-               <svg fill="currentColor" viewBox="0 0 20 20">
-                 <path d="M6 2h8a2 2 0 012 2v1h-1.5l-.5 9a2 2 0 01-2 2H8a2 2 0 01-2-2l-.5-9H4V4a2 2 0 012-2zm1.5 3l.5 9h4l.5-9h-5z"/>
-               </svg>
-               Delete
-             </div>`
-          : '';
-        postElement.innerHTML = `
-          <div class="post-header">
-            <div class="avatar">${post.username[0].toUpperCase()}</div>
-            <span>${post.username}</span>
-          </div>
-          <img src="${post.imageUrl}" alt="Post" onerror="this.src='https://via.placeholder.com/400x600?text=Image+Not+Found';">
-          <div class="post-actions">
-            <div class="like-button" onclick="likePost('${id}')">
-              <svg fill="currentColor" viewBox="0 0 20 20">
-                <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
-              </svg>
-              <span>${post.likes || 0}</span>
-            </div>
-            ${deleteButton}
-          </div>
-        `;
-        feed.appendChild(postElement);
-      });
-    }
-
-    // Listen for real-time updates from Firebase
-    database.ref('posts').on('value', (snapshot) => {
-      const posts = snapshot.val() || {};
-      renderPosts(posts);
-    });
-
-    // Submit a new post
-    function submitPost() {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      const username = document.getElementById('username').value.trim() || user.displayName || user.email.split('@')[0];
-      const imageUrl = document.getElementById('imageUrl').value.trim();
-      const error = document.getElementById('error');
-
-      if (!imageUrl) {
-        error.style.display = 'block';
-        error.textContent = 'Please enter an image URL';
-        return;
-      }
-
-      try {
-        new URL(imageUrl);
-      } catch {
-        error.style.display = 'block';
-        error.textContent = 'Please enter a valid image URL';
-        return;
-      }
-
-      const newPost = {
-        username,
-        imageUrl,
-        likes: 0,
-        timestamp: Date.now(),
-        userId: user.uid
-      };
-
-      database.ref('posts').push(newPost).then(() => {
-        document.getElementById('imageUrl').value = '';
-        error.style.display = 'none';
-      }).catch(err => {
-        error.style.display = 'block';
-        error.textContent = 'Error posting image: ' + err.message;
-      });
-    }
-
-    // Like a post
-    function likePost(postId) {
-      const postRef = database.ref(`posts/${postId}`);
-      postRef.transaction(post => {
-        if (post) {
-          post.likes = (post.likes || 0) + 1;
-        }
-        return post;
-      }).catch(err => {
-        document.getElementById('error').style.display = 'block';
-        document.getElementById('error').textContent = 'Error liking post: ' + err.message;
-      });
-    }
-
-    // Delete a post
-    function deletePost(postId) {
-      const user = auth.currentUser;
-      if (!user) return;
-
-      database.ref(`posts/${postId}`).once('value').then(snapshot => {
-        const post = snapshot.val();
-        if (post && post.userId === user.uid) {
-          database.ref(`posts/${postId}`).remove().catch(err => {
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error').textContent = 'Error deleting post: ' + err.message;
-          });
-        }
-      });
     }
   </script>
 </body>
