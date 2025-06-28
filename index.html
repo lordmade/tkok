@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat App - Login / Signup</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK via CDN (v9.6.11) -->
+  <!-- Firebase SDK v9.6.11 (modular) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
     import {
@@ -142,8 +142,8 @@
   </div>
 
   <script type="module">
-    // Ensure DOM is loaded
-    document.addEventListener('DOMContentLoaded', () => {
+    // Ensure DOM and Firebase SDK are loaded
+    document.addEventListener('DOMContentLoaded', async () => {
       // Custom Alert Dialog
       function showAlert(message, isError = false) {
         const alertContainer = document.getElementById('alert-container');
@@ -198,14 +198,14 @@
         if (typeof firebase === 'undefined') {
           throw new Error("Firebase SDK not loaded. Check network or CDN.");
         }
-        const app = initializeApp(firebaseConfig);
+        const app = await initializeApp(firebaseConfig);
         console.log("Firebase app initialized:", app.name);
-        auth = getAuth(app);
-        db = getDatabase(app);
+        auth = await getAuth(app);
+        db = await getDatabase(app);
         console.log("Firebase Auth and Database initialized");
       } catch (error) {
         console.error("Firebase initialization error:", error.message);
-        showAlert(`Failed to initialize Firebase: ${error.message}. Please try again.`, true);
+        showAlert(`Failed to initialize Firebase: ${error.message}. Please check your network and Firebase configuration.`, true);
         return; // Stop execution if initialization fails
       }
 
