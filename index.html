@@ -1,99 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Login | TikTok Lite</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App - Auth</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK via CDN -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+  <style>
+    /* Custom CSS */
+    .tab-active {
+      background-color: #3b82f6;
+      color: white;
+    }
+    .tab-inactive {
+      background-color: #d1d5db;
+      color: #374151;
+    }
+  </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center px-4">
-  <div class="max-w-md w-full space-y-8">
-    <div class="text-center">
-      <h1 class="text-4xl font-bold mb-2">Welcome to TikTok Lite</h1>
-      <p class="text-gray-400">Login or Sign Up to continue</p>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-center">Chat App</h1>
+    
+    <!-- Tabs -->
+    <div class="flex mb-4">
+      <button id="signin-tab" class="w-1/2 py-2 text-center tab-active rounded-l-lg">Sign In</button>
+      <button id="signup-tab" class="w-1/2 py-2 text-center tab-inactive rounded-r-lg">Sign Up</button>
     </div>
 
-    <form id="auth-form" class="bg-gray-800 p-6 rounded-lg space-y-4">
-      <input
-        type="email"
-        id="email"
-        placeholder="Email"
-        class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none"
-        required
-      />
-      <input
-        type="password"
-        id="password"
-        placeholder="Password"
-        class="w-full px-4 py-2 rounded bg-gray-700 text-white focus:outline-none"
-        required
-      />
-      <div class="flex gap-2">
-        <button
-          type="button"
-          onclick="signIn()"
-          class="w-1/2 py-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold"
-        >
-          Sign In
-        </button>
-        <button
-          type="button"
-          onclick="signUp()"
-          class="w-1/2 py-2 bg-green-600 hover:bg-green-700 rounded font-semibold"
-        >
-          Sign Up
-        </button>
-      </div>
-    </form>
+    <!-- Sign-In Form -->
+    <div id="signin-form" class="block">
+      <input id="signin-email" type="email" placeholder="Email" class="w-full p-2 mb-4 border rounded">
+      <input id="signin-password" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+      <button id="signin-btn" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Sign In</button>
+      <button id="reset-password-btn" class="w-full text-blue-500 text-sm mt-2 hover:underline">Forgot Password?</button>
+    </div>
+
+    <!-- Sign-Up Form -->
+    <div id="signup-form" class="hidden">
+      <input id="signup-email" type="email" placeholder="Email" class="w-full p-2 mb-4 border rounded">
+      <input id="signup-password" type="password" placeholder="Password" class="w-full p-2 mb-4 border rounded">
+      <button id="signup-btn" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Sign Up</button>
+    </div>
+
+    <!-- Google Sign-In -->
+    <button id="google-signin-btn" class="w-full bg-red-500 text-white p-2 rounded mt-4 hover:bg-red-600">Sign in with Google</button>
+
+    <!-- Messages -->
+    <p id="error" class="text-red-500 mt-4 hidden"></p>
+    <p id="message" class="text-green-500 mt-4 hidden"></p>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js"></script>
   <script>
+    // Firebase Configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyAxBT0oESoL62oz_x_Z8cMtdENWZPx4tMI",
-      authDomain: "pinotp-d7ef5.firebaseapp.com",
-      databaseURL: "https://pinotp-d7ef5-default-rtdb.firebaseio.com",
-      projectId: "pinotp-d7ef5",
-      storageBucket: "pinotp-d7ef5.appspot.com",
-      messagingSenderId: "708458917827",
-      appId: "1:708458917827:web:b9536e469a842d56cf9776"
+      apiKey: "AIzaSyBzWn8Eu3ZWnnhNq03Z_l9WfS6no5bi7Rk",
+      authDomain: "wblogin-4cc7c.firebaseapp.com",
+      databaseURL: "https://wblogin-4cc7c-default-rtdb.firebaseio.com",
+      projectId: "wblogin-4cc7c",
+      storageBucket: "wblogin-4cc7c.firebasestorage.app",
+      messagingSenderId: "844089102374",
+      appId: "1:844089102374:web:71d8c9c86773756ede56e7",
+      measurementId: "G-HMFTFPRD8G"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.database();
 
-    function signIn() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-          window.location.href = 'home.html';
-        })
-        .catch(error => {
-          alert("Error signing in: " + error.message);
-        });
+    // Helper: Show message or error
+    function showMessage(message, isError = false) {
+      const msgEl = document.getElementById('message');
+      const errorEl = document.getElementById('error');
+      if (msgEl && !isError) {
+        msgEl.textContent = message;
+        msgEl.classList.remove('hidden');
+        errorEl.classList.add('hidden');
+      } else if (errorEl && isError) {
+        errorEl.textContent = message;
+        errorEl.classList.remove('hidden');
+        msgEl.classList.add('hidden');
+      }
     }
 
-    function signUp() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
+    // Tab Switching
+    const signinTab = document.getElementById('signin-tab');
+    const signupTab = document.getElementById('signup-tab');
+    const signinForm = document.getElementById('signin-form');
+    const signupForm = document.getElementById('signup-form');
 
+    signinTab.addEventListener('click', () => {
+      signinTab.classList.add('tab-active');
+      signinTab.classList.remove('tab-inactive');
+      signupTab.classList.add('tab-inactive');
+      signupTab.classList.remove('tab-active');
+      signinForm.classList.remove('hidden');
+      signupForm.classList.add('hidden');
+    });
+
+    signupTab.addEventListener('click', () => {
+      signupTab.classList.add('tab-active');
+      signupTab.classList.remove('tab-inactive');
+      signinTab.classList.add('tab-inactive');
+      signinTab.classList.remove('tab-active');
+      signupForm.classList.remove('hidden');
+      signinForm.classList.add('hidden');
+    });
+
+    // Sign Up
+    document.getElementById('signup-btn').addEventListener('click', () => {
+      const email = document.getElementById('signup-email').value;
+      const password = document.getElementById('signup-password').value;
       auth.createUserWithEmailAndPassword(email, password)
-        .then(() => {
-          window.location.href = 'home.html';
+        .then((userCredential) => {
+          // Save user data to Realtime Database
+          db.ref(`users/${userCredential.user.uid}`).set({
+            email: email,
+            createdAt: Date.now()
+          });
+          window.location.href = 'chat.html';
         })
-        .catch(error => {
-          alert("Error signing up: " + error.message);
-        });
-    }
+        .catch((error) => showMessage(error.message, true));
+    });
 
-    // Redirect if already signed in
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        window.location.href = "home.html";
+    // Sign In
+    document.getElementById('signin-btn').addEventListener('click', () => {
+      const email = document.getElementById('signin-email').value;
+      const password = document.getElementById('signin-password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => window.location.href = 'chat.html')
+        .catch((error) => showMessage(error.message, true));
+    });
+
+    // Password Reset
+    document.getElementById('reset-password-btn').addEventListener('click', () => {
+      const email = document.getElementById('signin-email').value;
+      if (!email) return showMessage('Please enter your email.', true);
+      auth.sendPasswordResetEmail(email)
+        .then(() => showMessage('Password reset email sent. Check your inbox.'))
+        .catch((error) => showMessage(error.message, true));
+    });
+
+    // Google Sign-In
+    document.getElementById('google-signin-btn').addEventListener('click', () => {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          // Save user data to Realtime Database
+          db.ref(`users/${result.user.uid}`).set({
+            email: result.user.email,
+            createdAt: Date.now()
+          });
+          window.location.href = 'chat.html';
+        })
+        .catch((error) => showMessage(error.message, true));
+    });
+
+    // Check Auth State
+    auth.onAuthStateChanged((user) => {
+      if (user && window.location.pathname.includes('index.html')) {
+        window.location.href = 'chat.html'; // Redirect to chat if already authenticated
       }
     });
   </script>
