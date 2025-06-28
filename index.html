@@ -1,27 +1,142 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Neochat - Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App - Login / Signup</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK via CDN -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+  <style>
+    /* WhatsApp-inspired styling */
+    body {
+      font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #ece5dd; /* WhatsApp light green-gray background */
+    }
+    .tab-active {
+      background-color: #25D366; /* WhatsApp green */
+      color: white;
+    }
+    .tab-inactive {
+      background-color: #d1d5db;
+      color: #374151;
+    }
+    .btn-whatsapp {
+      background-color: #25D366;
+      color: white;
+      transition: background-color 0.2s;
+    }
+    .btn-whatsapp:hover {
+      background-color: #20b858;
+    }
+    .btn-google {
+      background-color: #fff;
+      color: #000;
+      border: 1px solid #dadce0;
+      transition: background-color 0.2s;
+    }
+    .btn-google:hover {
+      background-color: #f5f5f5;
+    }
+    .alert {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1rem 2rem;
+      border-radius: 0 0 0.5rem 0.5rem;
+      color: white;
+      font-weight: 500;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .alert-success {
+      background-color: #25D366; /* WhatsApp green for success */
+    }
+    .alert-error {
+      background-color: #ef4444;
+    }
+    .alert-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .alert-hidden {
+      transform: translateX(-50%) translateY(-100%);
+    }
+    .loader-container {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+    }
+    .animate-spin-slow {
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-  <div class="bg-white p-6 rounded-xl shadow-md w-full max-w-sm space-y-5">
-    <h2 class="text-3xl font-bold text-center text-blue-600">Neochat</h2>
+<body class="bg-[#ece5dd] flex items-center justify-center h-screen px-4">
+  <!-- Loader Overlay -->
+  <div id="loader-overlay" class="loader-container">
+    <svg width="60" height="60" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="animate-spin-slow">
+      <circle cx="60" cy="60" r="50" stroke="#25D366" stroke-width="6" stroke-linecap="round" stroke-dasharray="240" stroke-dashoffset="60">
+        <animate attributeName="stroke-dashoffset" values="60;300" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+  </div>
 
-    <input id="email" type="email" placeholder="Email" class="w-full p-2 border rounded" />
-    <input id="password" type="password" placeholder="Password" class="w-full p-2 border rounded" />
+  <!-- Alert Dialog Container -->
+  <div id="alert-container"></div>
 
-    <button id="login" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Sign In</button>
-    <button id="signup" class="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">Sign Up</button>
+  <!-- Main Container -->
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+    <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Chat App</h1>
 
-    <p id="error" class="text-red-500 text-center hidden"></p>
+    <!-- Tabs -->
+    <div class="flex mb-6">
+      <button id="signin-tab" class="w-1/2 py-2 text-center tab-active rounded-l-lg">Sign In</button>
+      <button id="signup-tab" class="w-1/2 py-2 text-center tab-inactive rounded-r-lg">Sign Up</button>
+    </div>
+
+    <!-- Sign-In Form -->
+    <div id="signin-form" class="block space-y-4">
+      <input id="signin-email" type="email" placeholder="Email" class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:border-[#25D366] text-gray-800">
+      <input id="signin-password" type="password" placeholder="Password" class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:border-[#25D366] text-gray-800">
+      <button id="signin-btn" class="w-full btn-whatsapp py-3 rounded-md font-medium">Sign In</button>
+      <button id="reset-password-btn" class="w-full text-[#25D366] text-sm hover:underline">Forgot Password?</button>
+    </div>
+
+    <!-- Sign-Up Form -->
+    <div id="signup-form" class="hidden space-y-4">
+      <input id="signup-email" type="email" placeholder="Email" class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:border-[#25D366] text-gray-800">
+      <input id="signup-password" type="password" placeholder="Password" class="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:border-[#25D366] text-gray-800">
+      <button id="signup-btn" class="w-full btn-whatsapp py-3 rounded-md font-medium">Sign Up</button>
+    </div>
+
+    <!-- Google Sign-In -->
+    <button id="google-signin-btn" class="w-full btn-google py-3 rounded-md font-medium flex items-center justify-center mt-4">
+      <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+        <path fill="#000" d="M12.24 10.4V14h3.2c-.2 1-.8 1.8-1.6 2.4v2h2.6c1.5-1.4 2.4-3.4 2.4-5.4 0-.6-.1-1.2-.2-1.8h-6.4zm-1.6 0V7.2H7.4v3.2h3.2zm-3.2 0H4.2V14h3.2v-3.6zm0-3.2H4.2v3.2h3.2V7.2zm8-3.2H12.2V4h3.2v3.2z"/>
+      </svg>
+      Sign in with Google
+    </button>
   </div>
 
   <script>
+    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyBzWn8Eu3ZWnnhNq03Z_l9WfS6no5bi7Rk",
       authDomain: "wblogin-4cc7c.firebaseapp.com",
@@ -32,32 +147,200 @@
       appId: "1:844089102374:web:71d8c9c86773756ede56e7",
       measurementId: "G-HMFTFPRD8G"
     };
-    firebase.initializeApp(firebaseConfig);
+
+    // Initialize Firebase
+    try {
+      firebase.initializeApp(firebaseConfig);
+      console.log("Firebase initialized successfully");
+    } catch (error) {
+      console.error("Firebase initialization error:", error);
+    }
     const auth = firebase.auth();
+    const db = firebase.database();
 
-    const email = document.getElementById("email");
-    const password = document.getElementById("password");
-    const error = document.getElementById("error");
+    // Custom Alert Dialog
+    function showAlert(message, isError = false) {
+      const alertContainer = document.getElementById('alert-container');
+      const alert = document.createElement('div');
+      alert.textContent = message;
+      alert.className = `alert ${isError ? 'alert-error' : 'alert-success'} alert-hidden`;
+      alertContainer.appendChild(alert);
 
-    document.getElementById("login").onclick = () => {
-      auth.signInWithEmailAndPassword(email.value, password.value)
-        .then(() => location.href = "chat.html")
-        .catch(err => showError(err.message));
-    };
+      // Show alert with animation
+      setTimeout(() => {
+        alert.classList.remove('alert-hidden');
+        alert.classList.add('alert-visible');
+      }, 10);
 
-    document.getElementById("signup").onclick = () => {
-      auth.createUserWithEmailAndPassword(email.value, password.value)
-        .then(() => location.href = "chat.html")
-        .catch(err => showError(err.message));
-    };
+      // Hide alert after 3 seconds
+      setTimeout(() => {
+        alert.classList.remove('alert-visible');
+        alert.classList.add('alert-hidden');
+        setTimeout(() => alert.remove(), 300);
+      }, 3000);
 
-    function showError(msg) {
-      error.textContent = msg;
-      error.classList.remove("hidden");
+      console.log(isError ? "Error:" : "Message:", message);
     }
 
-    auth.onAuthStateChanged(user => {
-      if (user) location.href = "chat.html";
+    // Loader Control
+    function toggleLoader(show) {
+      const loaderOverlay = document.getElementById('loader-overlay');
+      loaderOverlay.style.display = show ? 'flex' : 'none';
+    }
+
+    // Tab Switching
+    const signinTab = document.getElementById('signin-tab');
+    const signupTab = document.getElementById('signup-tab');
+    const signinForm = document.getElementById('signin-form');
+    const signupForm = document.getElementById('signup-form');
+
+    if (signinTab && signupTab && signinForm && signupForm) {
+      signinTab.addEventListener('click', () => {
+        console.log("Sign-in tab clicked");
+        signinTab.classList.add('tab-active');
+        signinTab.classList.remove('tab-inactive');
+        signupTab.classList.add('tab-inactive');
+        signupTab.classList.remove('tab-active');
+        signinForm.classList.remove('hidden');
+        signupForm.classList.add('hidden');
+      });
+
+      signupTab.addEventListener('click', () => {
+        console.log("Sign-up tab clicked");
+        signupTab.classList.add('tab-active');
+        signupTab.classList.remove('tab-inactive');
+        signinTab.classList.add('tab-inactive');
+        signinTab.classList.remove('tab-active');
+        signupForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+      });
+    } else {
+      console.error("Tab elements not found");
+      showAlert("Tab initialization failed. Please refresh the page.", true);
+    }
+
+    // Sign Up
+    const signupBtn = document.getElementById('signup-btn');
+    if (signupBtn) {
+      signupBtn.addEventListener('click', () => {
+        console.log("Sign-up button clicked");
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
+        if (!email || !password) {
+          showAlert("Please enter email and password.", true);
+          return;
+        }
+        toggleLoader(true);
+        auth.createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            console.log("Sign-up successful for user:", userCredential.user.email);
+            db.ref(`users/${userCredential.user.uid}`).set({
+              email: email,
+              createdAt: Date.now()
+            });
+            window.location.href = 'chat.html';
+          })
+          .catch((error) => {
+            console.error("Sign-up error:", error);
+            showAlert(error.message, true);
+          })
+          .finally(() => toggleLoader(false));
+      });
+    } else {
+      console.error("Signup button not found");
+      showAlert("Signup button not found. Please refresh the page.", true);
+    }
+
+    // Sign In
+    const signinBtn = document.getElementById('signin-btn');
+    if (signinBtn) {
+      signinBtn.addEventListener('click', () => {
+        console.log("Sign-in button clicked");
+        const email = document.getElementById('signin-email').value;
+        const password = document.getElementById('signin-password').value;
+        if (!email || !password) {
+          showAlert("Please enter email and password.", true);
+          return;
+        }
+        toggleLoader(true);
+        auth.signInWithEmailAndPassword(email, password)
+          .then(() => {
+            console.log("Sign-in successful");
+            window.location.href = 'chat.html';
+          })
+          .catch((error) => {
+            console.error("Sign-in error:", error);
+            showAlert(error.message, true);
+          })
+          .finally(() => toggleLoader(false));
+      });
+    } else {
+      console.error("Signin button not found");
+      showAlert("Signin button not found. Please refresh the page.", true);
+    }
+
+    // Password Reset
+    const resetPasswordBtn = document.getElementById('reset-password-btn');
+    if (resetPasswordBtn) {
+      resetPasswordBtn.addEventListener('click', () => {
+        console.log("Password reset button clicked");
+        const email = document.getElementById('signin-email').value;
+        if (!email) {
+          showAlert("Please enter your email.", true);
+          return;
+        }
+        toggleLoader(true);
+        auth.sendPasswordResetEmail(email)
+          .then(() => {
+            console.log("Password reset email sent");
+            showAlert("Password reset email sent. Check your inbox.");
+          })
+          .catch((error) => {
+            console.error("Password reset error:", error);
+            showAlert(error.message, true);
+          })
+          .finally(() => toggleLoader(false));
+      });
+    } else {
+      console.error("Reset password button not found");
+      showAlert("Reset password button not found. Please refresh the page.", true);
+    }
+
+    // Google Sign-In
+    const googleSigninBtn = document.getElementById('google-signin-btn');
+    if (googleSigninBtn) {
+      googleSigninBtn.addEventListener('click', () => {
+        console.log("Google Sign-In button clicked");
+        const provider = new firebase.auth.GoogleAuthProvider();
+        toggleLoader(true);
+        auth.signInWithPopup(provider)
+          .then((result) => {
+            console.log("Google Sign-In successful for user:", result.user.email);
+            db.ref(`users/${result.user.uid}`).set({
+              email: result.user.email,
+              createdAt: Date.now()
+            });
+            window.location.href = 'chat.html';
+          })
+          .catch((error) => {
+            console.error("Google Sign-In error:", error);
+            showAlert(error.message, true);
+          })
+          .finally(() => toggleLoader(false));
+      });
+    } else {
+      console.error("Google Sign-In button not found");
+      showAlert("Google Sign-In button not found. Please refresh the page.", true);
+    }
+
+    // Check Auth State
+    auth.onAuthStateChanged((user) => {
+      toggleLoader(true);
+      if (user && window.location.pathname.includes('index.html')) {
+        console.log("User already authenticated, redirecting to chat.html");
+        window.location.href = 'chat.html';
+      }
+      toggleLoader(false);
     });
   </script>
 </body>
