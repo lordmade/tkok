@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chat App - Login / Signup</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK via CDN (v9.6.11 to match original) -->
+  <!-- Firebase SDK via CDN (v9.6.11) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
     import {
@@ -144,6 +144,42 @@
   <script type="module">
     // Ensure DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
+      // Custom Alert Dialog
+      function showAlert(message, isError = false) {
+        const alertContainer = document.getElementById('alert-container');
+        if (!alertContainer) {
+          console.error("Alert container not found");
+          return;
+        }
+        const alert = document.createElement('div');
+        alert.textContent = message;
+        alert.className = `alert ${isError ? 'alert-error' : 'alert-success'} alert-hidden`;
+        alertContainer.appendChild(alert);
+
+        setTimeout(() => {
+          alert.classList.remove('alert-hidden');
+          alert.classList.add('alert-visible');
+        }, 10);
+
+        setTimeout(() => {
+          alert.classList.remove('alert-visible');
+          alert.classList.add('alert-hidden');
+          setTimeout(() => alert.remove(), 300);
+        }, 3000);
+
+        console.log(isError ? "Error:" : "Message:", message);
+      }
+
+      // Loader Control
+      function toggleLoader(show) {
+        const loaderOverlay = document.getElementById('loader-overlay');
+        if (loaderOverlay) {
+          loaderOverlay.style.display = show ? 'flex' : 'none';
+        } else {
+          console.error("Loader overlay not found");
+        }
+      }
+
       // Firebase Configuration
       const firebaseConfig = {
         apiKey: "AIzaSyBOyZ3As4GTuNvjemvPF_SpsC6m6vqtNhc",
@@ -159,13 +195,18 @@
       // Initialize Firebase
       let auth, db;
       try {
+        if (typeof firebase === 'undefined') {
+          throw new Error("Firebase SDK not loaded. Check network or CDN.");
+        }
         const app = initializeApp(firebaseConfig);
+        console.log("Firebase app initialized:", app.name);
         auth = getAuth(app);
         db = getDatabase(app);
-        console.log("Firebase initialized successfully");
+        console.log("Firebase Auth and Database initialized");
       } catch (error) {
-        console.error("Firebase initialization error:", error);
-        showAlert("Failed to initialize Firebase. Please try again.", true);
+        console.error("Firebase initialization error:", error.message);
+        showAlert(`Failed to initialize Firebase: ${error.message}. Please try again.`, true);
+        return; // Stop execution if initialization fails
       }
 
       // DOM Elements
@@ -180,44 +221,6 @@
       const userName = document.getElementById("user-name");
       const userEmail = document.getElementById("user-email");
       const signOutBtn = document.getElementById("sign-out");
-      const loaderOverlay = document.getElementById("loader-overlay");
-
-      // Custom Alert Dialog
-      function showAlert(message, isError = false) {
-        const alertContainer = document.getElementById('alert-container');
-        if (!alertContainer) {
-          console.error("Alert container not found");
-          return;
-        }
-        const alert = document.createElement('div');
-        alert.textContent = message;
-        alert.className = `alert ${isError ? 'alert-error' : 'alert-success'} alert-hidden`;
-        alertContainer.appendChild(alert);
-
-        // Show alert with animation
-        setTimeout(() => {
-          alert.classList.remove('alert-hidden');
-          alert.classList.add('alert-visible');
-        }, 10);
-
-        // Hide alert after 3 seconds
-        setTimeout(() => {
-          alert.classList.remove('alert-visible');
-          alert.classList.add('alert-hidden');
-          setTimeout(() => alert.remove(), 300);
-        }, 3000);
-
-        console.log(isError ? "Error:" : "Message:", message);
-      }
-
-      // Loader Control
-      function toggleLoader(show) {
-        if (loaderOverlay) {
-          loaderOverlay.style.display = show ? 'flex' : 'none';
-        } else {
-          console.error("Loader overlay not found");
-        }
-      }
 
       // Error Messages
       const errorMessages = {
